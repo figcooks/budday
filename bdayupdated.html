@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Happy Birthday Coco!</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+      :root {
+        --pink: #ff69b4;
+        --gold: #ffd700;
+        --sky-blue: #87ceeb;
+        --dark-green: #006400;
+        --forest-green: #228b22;
+        --dark-bg: #2c2c2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--dark-bg);
+        color: #fff;
+        font-family: "Press Start 2P", cursive;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        padding: 1em;
+        overflow: hidden;
+      }
+
+      #game-container {
+        border: 4px solid #fff;
+        position: relative;
+        background-color: var(--sky-blue);
+        width: 95%;
+        max-width: 800px;
+        aspect-ratio: 800 / 600;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background-color: transparent;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+        cursor: crosshair;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.82);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 10;
+        padding: 1em 5%;
+        transition: opacity 0.25s ease-in-out;
+        animation: pulse 3s ease-in-out infinite;
+      }
+
+      .screen.hidden {
+        display: none;
+        opacity: 0;
+      }
+
+      h1 {
+        font-size: clamp(1.5em, 5vw, 2.5em);
+        color: var(--pink);
+        text-shadow: 4px 4px 0 #000;
+        animation: bounce 2s ease-in-out infinite;
+      }
+
+      h2 {
+        font-size: clamp(1.2em, 4vw, 1.5em);
+        color: var(--gold);
+        text-shadow: 2px 2px 0 #000;
+      }
+
+      #end-screen h2 {
+        animation: glow 1.5s ease-in-out infinite alternate;
+      }
+
+      p {
+        font-size: clamp(0.6em, 2.2vw, 0.8em);
+        margin-top: 20px;
+        line-height: 1.6;
+        word-wrap: break-word;
+        max-width: 90%;
+        text-align: center;
+      }
+
+      button {
+        font-family: "Press Start 2P", cursive;
+        font-size: clamp(0.8em, 3vw, 1.1em);
+        padding: 14px 26px;
+        background-color: var(--pink);
+        color: #fff;
+        border: 4px solid #fff;
+        cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        box-shadow: 4px 4px 0 #000;
+        transition: all 0.1s ease-in-out;
+        margin-top: 18px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      button:hover {
+        background-color: #ff85c1;
+        transform: translateY(-2px);
+        box-shadow: 6px 6px 0 #000;
+        animation: rainbow 1s linear infinite;
+      }
+
+      button:active {
+        transform: translateY(2px);
+        box-shadow: 2px 2px 0 #000;
+      }
+
+      #unlocked-gallery {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 10px;
+        z-index: 5;
+      }
+
+      .key-slot {
+        width: clamp(40px, 10vw, 80px);
+        height: clamp(40px, 10vw, 80px);
+        background-color: rgba(0, 0, 0, 0.5);
+        border: 3px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5em;
+        color: var(--gold);
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+        border-radius: 8px;
+      }
+
+      .key-slot:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 15px var(--gold);
+      }
+
+      .key-slot.has-key {
+        background-color: rgba(255, 215, 0, 0.2);
+        border-color: var(--gold);
+        box-shadow: 0 0 10px var(--gold);
+        animation: keyGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes keyGlow {
+        from {
+          box-shadow: 0 0 10px var(--gold);
+        }
+        to {
+          box-shadow: 0 0 20px var(--gold), 0 0 30px var(--gold);
+        }
+      }
+
+      #treasure-chest {
+        width: 200px;
+        height: 150px;
+        margin: 20px auto;
+        position: relative;
+      }
+      .chest-body {
+        width: 100%;
+        height: 80px;
+        background: linear-gradient(45deg, #8b4513, #a0522d);
+        border: 4px solid #654321;
+        border-radius: 10px;
+        position: absolute;
+        bottom: 0;
+      }
+      .chest-lid {
+        width: 100%;
+        height: 60px;
+        background: linear-gradient(45deg, #8b4513, #a0522d);
+        border: 4px solid #654321;
+        border-radius: 15px 15px 5px 5px;
+        position: absolute;
+        top: 0;
+        transform-origin: bottom;
+        transition: transform 1s ease-in-out;
+      }
+      .chest-lid.open {
+        transform: rotateX(-120deg);
+      }
+      .chest-lock {
+        width: 30px;
+        height: 40px;
+        background: linear-gradient(45deg, #ffd700, #ffa500);
+        border: 2px solid #b8860b;
+        border-radius: 8px;
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .key-hole {
+        width: 8px;
+        height: 8px;
+        background: #000;
+        border-radius: 50%;
+        margin-bottom: 2px;
+      }
+      .key-hole-slot {
+        width: 3px;
+        height: 10px;
+        background: #000;
+      }
+      .inserted-key {
+        position: absolute;
+        color: var(--gold);
+        font-size: 1.2em;
+        animation: keyInsert 0.5s ease-in-out;
+      }
+
+      @keyframes keyInsert {
+        0% {
+          transform: translateY(-20px) scale(0.5);
+          opacity: 0;
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* ===== Scrollable Note Screen Fix ===== */
+      #note-screen {
+        background: linear-gradient(135deg, #f5f5dc, #fff8dc);
+        color: #333;
+        border: 8px solid var(--gold);
+        border-radius: 15px;
+        padding: clamp(8px, 3vw, 18px);
+        align-items: stretch; /* let card size itself */
+      }
+
+      #note-content {
+        background: rgba(255, 255, 255, 0.92);
+        border: 2px solid var(--gold);
+        border-radius: 12px;
+        margin: 0 auto;
+        width: min(90%, 640px);
+        padding: clamp(12px, 2.8vw, 22px);
+        box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.3);
+        animation: noteGlow 3s ease-in-out infinite alternate;
+
+        /* key: keep it neat & scrollable on small screens */
+        max-height: min(72vh, 520px);
+        overflow: auto;
+        text-align: left;
+      }
+
+      @keyframes noteGlow {
+        from {
+          box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        to {
+          box-shadow: inset 0 0 30px rgba(255, 215, 0, 0.5),
+            0 0 20px rgba(255, 215, 0, 0.3);
+        }
+      }
+
+      #note-content h3 {
+        color: var(--pink);
+        margin: 0 0 12px;
+        text-align: center;
+        font-size: clamp(1em, 3vw, 1.3em);
+      }
+      #note-content p {
+        color: #444;
+        line-height: 1.8;
+        font-size: clamp(0.72em, 2.2vw, 0.95em);
+        margin: 10px 0;
+      }
+
+      .click-to-continue {
+        position: absolute;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: var(--gold);
+        font-size: clamp(0.6em, 2vw, 0.8em);
+        animation: blink 1.5s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0.3;
+        }
+      }
+
+      #game-stats {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: clamp(0.6em, 2.2vw, 0.9em);
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        z-index: 5;
+      }
+
+      #cake-canvas {
+        width: 150px;
+        height: 150px;
+      }
+
+      /* Puzzle placeholders (kept for completeness) */
+      #puzzle-container {
+        position: relative;
+        width: 312px;
+        height: 106px;
+      }
+      .puzzle-piece {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border: 3px solid var(--gold);
+        transition: all 1.5s ease-in-out;
+      }
+      #puzzle-piece-1 {
+        top: -120px;
+        left: 106px;
+      }
+      #puzzle-piece-2 {
+        top: 3px;
+        left: -150px;
+      }
+      #puzzle-piece-3 {
+        top: 3px;
+        left: 350px;
+      }
+
+      /* Fun text fx */
+      @keyframes glow {
+        from {
+          text-shadow: 2px 2px 0 #000, 0 0 10px #fff, 0 0 20px #fff,
+            0 0 30px var(--gold), 0 0 40px var(--gold);
+        }
+        to {
+          text-shadow: 2px 2px 0 #000, 0 0 20px #fff, 0 0 30px var(--pink),
+            0 0 40px var(--pink), 0 0 50px var(--pink);
+        }
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes rainbow {
+        0% {
+          filter: hue-rotate(0deg);
+        }
+        100% {
+          filter: hue-rotate(360deg);
+        }
+      }
+
+      /* Small devices: tighten padding a bit */
+      @media (max-width: 420px) {
+        #note-content {
+          max-height: 68vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <!-- Start Screen -->
+      <div id="start-screen" class="screen">
+        <h1>Coco's Quest!</h1>
+        <p>Zap the mansplainers to unlock your birthday surprises!</p>
+        <p>Use Arrow Keys to Move & Spacebar to Zap!</p>
+        <p>(On mobile, tap the game to zap!)</p>
+        <button id="start-button">Start Game</button>
+      </div>
+
+      <!-- Level Complete Screen -->
+      <div id="level-complete-screen" class="screen hidden">
+        <h2>Level Complete!</h2>
+        <p>You're doing great!</p>
+        <button id="next-level-button">Next Level</button>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="screen hidden">
+        <h2>Game Over</h2>
+        <p>Try again Coco, you're better than those men!</p>
+        <button id="try-again-button">Try Again</button>
+      </div>
+
+      <!-- Chest Unlock Screen -->
+      <div id="chest-screen" class="screen hidden">
+        <h2>You found all the keys!</h2>
+        <div id="treasure-chest">
+          <div class="chest-lid"></div>
+          <div class="chest-body"></div>
+          <div class="chest-lock">
+            <div class="key-hole"></div>
+            <div class="key-hole-slot"></div>
+          </div>
+        </div>
+        <p>The treasure chest is opening...</p>
+      </div>
+
+      <!-- Note Screen (scrollable content) -->
+      <div id="note-screen" class="screen hidden">
+        <div id="note-content">
+          <h3>💖 Happy Birthday Coco! 💖</h3>
+          <p>My dearest Coco,</p>
+          <p>
+            You are absolutely incredible! Just like in this game, you face
+            every challenge with courage and determination. You zap through
+            problems like the amazing person you are! Hope you liked the game
+            and the last MAX boss XD
+          </p>
+          <p>
+            Your strength, intelligence, and fierce spirit inspire everyone
+            around you. Never let anyone dim your sparkle or make you feel small
+            - you're destined for greatness!
+          </p>
+          <p>
+            I hope this special day brings you all the joy, laughter, and cake
+            your heart desires. May God bless you and give you power for the
+            future.🌻
+          </p>
+          <p>
+            Keep being the phenomenal woman you are. I am so glad to meet you
+            via discord when i was at my lowest cause the server created by you
+            helped me a lot. I got to meet a lotta people because of you. Keep
+            creating wonders Coco-san. I am proud of you and you're the best
+            mentor. The future is bright because people like you are in it! ✨
+          </p>
+          <p style="text-align: center; margin-top: 16px; color: var(--pink)">
+            With love and birthday wishes,<br />
+            Your Biggest Fan 💕
+          </p>
+        </div>
+        <div class="click-to-continue">Click anywhere to continue...</div>
+      </div>
+
+      <!-- End Screen -->
+      <div id="end-screen" class="screen hidden">
+        <h2>Happy Birthday, Coco!</h2>
+        <canvas id="cake-canvas" width="200" height="200"></canvas>
+        <p>You did it! Hope you have a fantastic day!</p>
+      </div>
+
+      <!-- Game UI -->
+      <div id="game-stats">
+        <div id="score-board">Zapped: 0 / 5</div>
+        <div id="level-indicator">Level: 1</div>
+      </div>
+      <div id="unlocked-gallery">
+        <div class="key-slot" id="key1">🗝️</div>
+        <div class="key-slot" id="key2">🗝️</div>
+        <div class="key-slot" id="key3">🗝️</div>
+      </div>
+
+      <!-- Main Game Canvas -->
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+      /* ================== Canvas & DOM ================== */
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const startScreen = document.getElementById("start-screen");
+      const levelCompleteScreen = document.getElementById(
+        "level-complete-screen"
+      );
+      const gameOverScreen = document.getElementById("game-over-screen");
+      const chestScreen = document.getElementById("chest-screen");
+      const noteScreen = document.getElementById("note-screen");
+      const endScreen = document.getElementById("end-screen");
+
+      const startButton = document.getElementById("start-button");
+      const nextLevelButton = document.getElementById("next-level-button");
+      const tryAgainButton = document.getElementById("try-again-button");
+
+      const scoreBoard = document.getElementById("score-board");
+      const levelIndicator = document.getElementById("level-indicator");
+
+      /* ================== Config ================== */
+      const GAME_WIDTH = 800;
+      const GAME_HEIGHT = 600;
+      const PLAYER_SIZE = 40;
+      const ENEMY_SIZE = 40;
+      const GROUND_HEIGHT = 50;
+      const PLAYER_SPEED = 5;
+      const JUMP_FORCE = 12;
+      const GRAVITY = 0.6;
+      const ZAP_SPEED = 10;
+      const ZAP_COOLDOWN = 300;
+
+      const levels = [
+        { enemies: 5, speedMultiplier: 1.0, keyUnlock: 1 },
+        { enemies: 7, speedMultiplier: 1.3, keyUnlock: 2 },
+        { enemies: 5, speedMultiplier: 1.6, keyUnlock: 3, hasBoss: true },
+      ];
+
+      const mansplainerNames = ["Chad", "Brad", "Todd", "Kyle", "Brock"];
+
+      // Simple placeholder puzzle sprites (kept intact)
+      const imageUrls = [
+        "https://placehold.co/100x100/ff69b4/ffffff?text=HAP",
+        "https://placehold.co/100x100/ffd700/ffffff?text=PY",
+        "https://placehold.co/100x100/87ceeb/ffffff?text=COCO",
+      ];
+      const images = [];
+      imageUrls.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+        images.push(img);
+      });
+
+      canvas.width = GAME_WIDTH;
+      canvas.height = GAME_HEIGHT;
+      ctx.imageSmoothingEnabled = false;
+
+      /* ================== State ================== */
+      let player,
+        enemies,
+        zaps,
+        keys,
+        score,
+        lastZapTime,
+        gameOver,
+        gameStarted,
+        currentLevel,
+        particles,
+        confetti,
+        animationFrameId,
+        boss;
+      let screenShake = { x: 0, y: 0, intensity: 0 };
+      let gameTime = 0;
+      let collectedKeys = { key1: false, key2: false, key3: false };
+
+      /* ================== Audio (Tone.js) ================== */
+      let audioReady = false;
+
+      // SFX
+      const synth = new Tone.Synth().toDestination();
+      const metalSynth = new Tone.MetalSynth({
+        frequency: 50,
+        envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5,
+      }).toDestination();
+
+      const clapSynth = new Tone.NoiseSynth({
+        noise: { type: "white" },
+        envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
+      }).toDestination();
+
+      // Real applause (hands clapping). If blocked, we fall back to synth claps.
+      // Free, CORS-friendly sample from Pixabay CDN:
+      const applause = new Tone.Player({
+        url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_36f0f1c96d.mp3?filename=clapping-44774.mp3",
+        autostart: false,
+      }).toDestination();
+      applause.volume.value = -6;
+
+      // Background soft synth for "Happy Birthday"
+      const hbSynth = new Tone.Synth({
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.1, sustain: 0.6, release: 0.4 },
+      }).toDestination();
+      hbSynth.volume.value = -14;
+
+      // Full "Happy Birthday" melody (key of C, standard phrasing)
+      // Each item: [time, note, duration]
+      const HB_EVENTS = [
+        // Happy birthday to you
+        ["0:0", "G4", "8n"],
+        ["0:1", "G4", "8n"],
+        ["0:2", "A4", "4n"],
+        ["0:3", "G4", "4n"],
+        ["0:3:2", "C5", "4n"],
+        ["1:0", "B4", "2n"],
+        // Happy birthday to you
+        ["1:2", "G4", "8n"],
+        ["1:3", "G4", "8n"],
+        ["2:0", "A4", "4n"],
+        ["2:1", "G4", "4n"],
+        ["2:2", "D5", "4n"],
+        ["2:3", "C5", "2n"],
+        // Happy birthday dear Coco
+        ["3:2", "G4", "8n"],
+        ["3:3", "G4", "8n"],
+        ["4:0", "G5", "4n"],
+        ["4:1", "E5", "4n"],
+        ["4:2", "C5", "4n"],
+        ["4:3", "B4", "4n"],
+        ["5:0", "A4", "2n"],
+        // Happy birthday to you
+        ["5:2", "F5", "8n"],
+        ["5:3", "F5", "8n"],
+        ["6:0", "E5", "4n"],
+        ["6:1", "C5", "4n"],
+        ["6:2", "D5", "4n"],
+        ["6:3", "C5", "2n"],
+      ];
+
+      const happyBirthdayPart = new Tone.Part(
+        (time, ev) => {
+          hbSynth.triggerAttackRelease(ev.note, ev.dur, time);
+        },
+        HB_EVENTS.map(([t, n, d]) => ({ time: t, note: n, dur: d }))
+      );
+
+      happyBirthdayPart.loop = true;
+      happyBirthdayPart.loopEnd = "8:0";
+      happyBirthdayPart.probability = 1;
+
+      function playSound(type) {
+        if (!audioReady) return;
+        try {
+          if (type === "zap") synth.triggerAttackRelease("C5", "8n");
+          if (type === "hit")
+            metalSynth.triggerAttackRelease("C2", "8n", Tone.now());
+          if (type === "levelComplete")
+            new Tone.PolySynth(Tone.Synth)
+              .toDestination()
+              .triggerAttackRelease(["C4", "E4", "G4"], "4n");
+          if (type === "gameOver")
+            new Tone.PolySynth(Tone.Synth)
+              .toDestination()
+              .triggerAttackRelease(["C3", "D#3", "G3"], "4n");
+          if (type === "bossDefeat")
+            new Tone.PolySynth(Tone.Synth)
+              .toDestination()
+              .triggerAttackRelease(["C5", "E5", "G5", "C6"], "2n");
+          if (type === "puzzleMerge")
+            new Tone.PolySynth(Tone.Synth)
+              .toDestination()
+              .triggerAttackRelease(["C4", "G4", "C5"], "8n");
+          if (type === "finalWin")
+            new Tone.PolySynth(Tone.Synth)
+              .toDestination()
+              .triggerAttackRelease(["C4", "E4", "G4", "C5", "E5", "G5"], "1n");
+          if (type === "clap") {
+            // try real applause sample
+            if (applause.loaded) {
+              applause.start();
+            } else {
+              // fallback to synthesized claps
+              for (let i = 0; i < 6; i++) {
+                clapSynth.triggerAttack(Tone.now() + i * 0.07);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Audio playback error:", error);
+        }
+      }
+
+      /* ================== Sprites ================== */
+      const cocoSprite = {
+        draw(ctx, x, y, size) {
+          ctx.fillStyle = "#ffafcc";
+          ctx.fillRect(x + size * 0.25, y, size * 0.5, size * 0.5);
+          ctx.fillStyle = "#6a0dad";
+          ctx.fillRect(x + size * 0.2, y - size * 0.1, size * 0.6, size * 0.2);
+          ctx.fillRect(x, y + size * 0.1, size, size * 0.2);
+          ctx.fillStyle = "#ff69b4";
+          ctx.fillRect(x + size * 0.2, y + size * 0.5, size * 0.6, size * 0.4);
+          ctx.fillStyle = "#4b0082";
+          ctx.fillRect(x + size * 0.2, y + size * 0.9, size * 0.2, size * 0.1);
+          ctx.fillRect(x + size * 0.6, y + size * 0.9, size * 0.2, size * 0.1);
+        },
+      };
+      const mansplainerSprite = {
+        draw(ctx, x, y, size) {
+          ctx.fillStyle = "#d3d3d3";
+          ctx.fillRect(x, y + size * 0.4, size, size * 0.6);
+          ctx.fillStyle = "#f5deb3";
+          ctx.fillRect(x + size * 0.25, y, size * 0.5, size * 0.5);
+          ctx.fillStyle = "#8b4513";
+          ctx.fillRect(x + size * 0.25, y, size * 0.5, size * 0.2);
+          ctx.fillStyle = "#ff0000";
+          ctx.fillRect(x + size * 0.4, y + size * 0.5, size * 0.2, size * 0.3);
+        },
+      };
+      const bossSprite = {
+        draw(ctx, x, y, size) {
+          ctx.fillStyle = "#444";
+          ctx.fillRect(x, y + size * 0.4, size, size * 0.6);
+          ctx.fillStyle = "#ffddc1";
+          ctx.fillRect(x + size * 0.25, y, size * 0.5, size * 0.5);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(x + size * 0.25, y, size * 0.5, size * 0.2);
+          ctx.fillStyle = "#ffd700";
+          ctx.fillRect(x + size * 0.4, y + size * 0.5, size * 0.2, size * 0.3);
+          ctx.fillRect(x + size * 0.3, y, size * 0.4, size * 0.1);
+        },
+      };
+
+      /* ================== Game Setup ================== */
+      function init(level) {
+        currentLevel = level;
+        player = {
+          x: 50,
+          y: GAME_HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
+          width: PLAYER_SIZE,
+          height: PLAYER_SIZE,
+          velocityY: 0,
+          isJumping: false,
+          animationOffset: 0,
+          trail: [],
+        };
+        enemies = [];
+        zaps = [];
+        particles = [];
+        confetti = [];
+        boss = null;
+        keys = {};
+        score = 0;
+        lastZapTime = 0;
+        gameOver = false;
+        gameStarted = true;
+        screenShake = { x: 0, y: 0, intensity: 0 };
+        gameTime = 0;
+
+        [
+          startScreen,
+          levelCompleteScreen,
+          gameOverScreen,
+          chestScreen,
+          noteScreen,
+          endScreen,
+        ].forEach((s) => s.classList.add("hidden"));
+
+        updateUI();
+        spawnEnemies();
+        if (!animationFrameId) gameLoop();
+      }
+
+      function spawnEnemies() {
+        const levelConfig = levels[currentLevel - 1];
+        for (let i = 0; i < levelConfig.enemies; i++) {
+          enemies.push({
+            x: GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - ENEMY_SIZE),
+            y: GAME_HEIGHT - GROUND_HEIGHT - ENEMY_SIZE,
+            width: ENEMY_SIZE,
+            height: ENEMY_SIZE,
+            speed: (Math.random() * 2 + 1) * levelConfig.speedMultiplier,
+            direction: Math.random() < 0.5 ? 1 : -1,
+            name: mansplainerNames[
+              Math.floor(Math.random() * mansplainerNames.length)
+            ],
+            animationOffset: Math.random() * Math.PI * 2,
+            bounceHeight: Math.random() * 10 + 5,
+          });
+        }
+        if (levelConfig.hasBoss) {
+          boss = {
+            x: GAME_WIDTH - ENEMY_SIZE * 2.5,
+            y: GAME_HEIGHT - GROUND_HEIGHT - ENEMY_SIZE * 1.5,
+            width: ENEMY_SIZE * 1.5,
+            height: ENEMY_SIZE * 1.5,
+            speed: 1.5,
+            direction: -1,
+            health: 10,
+            maxHealth: 10,
+            name: "Max",
+            animationOffset: 0,
+            shakeIntensity: 0,
+          };
+        }
+      }
+
+      /* ================== Events ================== */
+      const activeKeys = {};
+      window.addEventListener("keydown", (e) => {
+        activeKeys[e.code] = true;
+      });
+      window.addEventListener("keyup", (e) => {
+        activeKeys[e.code] = false;
+      });
+
+      function handleZapAction() {
+        if (gameOver || !gameStarted) return;
+        const now = Date.now();
+        if (now - lastZapTime > ZAP_COOLDOWN) {
+          zaps.push({
+            x: player.x + player.width,
+            y: player.y + player.height / 2 - 2.5,
+            width: 15,
+            height: 5,
+          });
+          lastZapTime = now;
+          playSound("zap");
+        }
+      }
+
+      canvas.addEventListener("click", handleZapAction);
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          handleZapAction();
+        },
+        { passive: false }
+      );
+
+      startButton.addEventListener("click", async () => {
+        try {
+          await Tone.start(); // unlock audio (mobile)
+          audioReady = true;
+          Tone.Transport.bpm.value = 96;
+          Tone.Transport.start();
+          init(1);
+        } catch (err) {
+          console.warn("Audio start blocked:", err);
+          init(1);
+        }
+      });
+
+      nextLevelButton.addEventListener("click", () => init(currentLevel + 1));
+      tryAgainButton.addEventListener("click", () => init(currentLevel));
+
+      // Note screen → End screen
+      noteScreen.addEventListener("click", () => {
+        noteScreen.classList.add("hidden");
+        showEndScreen();
+      });
+
+      /* ================== Game Logic ================== */
+      function update() {
+        if (gameOver || !gameStarted) return;
+
+        gameTime += 0.016; // ~60fps
+        player.animationOffset += 0.2;
+
+        // Movement
+        if ((activeKeys["ArrowLeft"] || activeKeys["KeyA"]) && player.x > 0) {
+          player.x -= PLAYER_SPEED;
+          if (player.trail.length > 5) player.trail.shift();
+          player.trail.push({
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            alpha: 1,
+          });
+        }
+        if (
+          (activeKeys["ArrowRight"] || activeKeys["KeyD"]) &&
+          player.x < GAME_WIDTH - player.width
+        ) {
+          player.x += PLAYER_SPEED;
+          if (player.trail.length > 5) player.trail.shift();
+          player.trail.push({
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            alpha: 1,
+          });
+        }
+        if (
+          (activeKeys["ArrowUp"] || activeKeys["KeyW"]) &&
+          !player.isJumping
+        ) {
+          player.velocityY = -JUMP_FORCE;
+          player.isJumping = true;
+          createJumpParticles();
+        }
+
+        // Update trail fade
+        player.trail.forEach((t, i) => {
+          t.alpha -= 0.15;
+          if (t.alpha <= 0) player.trail.splice(i, 1);
+        });
+
+        // Gravity
+        player.y += player.velocityY;
+        player.velocityY += GRAVITY;
+        if (player.y >= GAME_HEIGHT - GROUND_HEIGHT - player.height) {
+          const landingSpeed = player.velocityY;
+          player.y = GAME_HEIGHT - GROUND_HEIGHT - player.height;
+          player.velocityY = 0;
+          if (player.isJumping && landingSpeed > 2) createLandingParticles();
+          player.isJumping = false;
+        }
+
+        if (activeKeys["Space"]) handleZapAction();
+
+        // Screen shake decay
+        if (screenShake.intensity > 0) {
+          screenShake.x = (Math.random() - 0.5) * screenShake.intensity;
+          screenShake.y = (Math.random() - 0.5) * screenShake.intensity;
+          screenShake.intensity *= 0.9;
+          if (screenShake.intensity < 0.1) {
+            screenShake = { x: 0, y: 0, intensity: 0 };
+          }
+        }
+
+        // Zaps
+        for (let i = zaps.length - 1; i >= 0; i--) {
+          const z = zaps[i];
+          z.x += ZAP_SPEED;
+
+          // trail
+          if (!z.trail) z.trail = [];
+          if (z.trail.length > 3) z.trail.shift();
+          z.trail.push({ x: z.x, y: z.y, alpha: 1 });
+          z.trail.forEach((t) => (t.alpha -= 0.3));
+
+          if (z.x > GAME_WIDTH) zaps.splice(i, 1);
+        }
+
+        // Enemies
+        enemies.forEach((e) => {
+          e.x += e.speed * e.direction;
+          e.animationOffset += 0.1;
+          if (e.x <= 0) {
+            e.x = 0;
+            e.direction = 1;
+          } else if (e.x >= GAME_WIDTH - e.width) {
+            e.x = GAME_WIDTH - e.width;
+            e.direction = -1;
+          }
+        });
+
+        // Boss
+        if (boss) {
+          boss.x += boss.speed * boss.direction;
+          boss.animationOffset += 0.05;
+          if (boss.x <= 0) {
+            boss.x = 0;
+            boss.direction = 1;
+          } else if (boss.x >= GAME_WIDTH - boss.width) {
+            boss.x = GAME_WIDTH - boss.width;
+            boss.direction = -1;
+          }
+          if (boss.shakeIntensity > 0) boss.shakeIntensity *= 0.9;
+        }
+
+        updateParticles();
+        handleCollisions();
+      }
+
+      function handleCollisions() {
+        // Zap vs enemies
+        for (let i = zaps.length - 1; i >= 0; i--) {
+          for (let j = enemies.length - 1; j >= 0; j--) {
+            if (zaps[i] && isColliding(zaps[i], enemies[j])) {
+              createExplosion(
+                enemies[j].x + enemies[j].width / 2,
+                enemies[j].y + enemies[j].height / 2
+              );
+              shakeScreen(5);
+              enemies.splice(j, 1);
+              zaps.splice(i, 1);
+              score++;
+              playSound("hit");
+              updateUI();
+              checkLevelCompletion();
+              break;
+            }
+          }
+        }
+
+        // Zap vs boss
+        if (boss) {
+          for (let i = zaps.length - 1; i >= 0; i--) {
+            if (zaps[i] && isColliding(zaps[i], boss)) {
+              boss.health--;
+              boss.shakeIntensity = 15;
+              createExplosion(zaps[i].x, zaps[i].y);
+              shakeScreen(8);
+              zaps.splice(i, 1);
+              playSound("hit");
+              if (boss.health <= 0) {
+                createExplosion(
+                  boss.x + boss.width / 2,
+                  boss.y + boss.height / 2,
+                  50
+                );
+                shakeScreen(20);
+                boss = null;
+                playSound("bossDefeat");
+                checkLevelCompletion();
+              }
+            }
+          }
+        }
+
+        // Player vs enemies/boss
+        for (const enemy of enemies)
+          if (isColliding(player, enemy)) return failGame();
+        if (boss && isColliding(player, boss)) return failGame();
+      }
+
+      function isColliding(a, b) {
+        return (
+          a.x < b.x + b.width &&
+          a.x + a.width > b.x &&
+          a.y < b.y + b.height &&
+          a.y + a.height > b.y
+        );
+      }
+
+      function checkLevelCompletion() {
+        const levelConfig = levels[currentLevel - 1];
+        if (score >= levelConfig.enemies && !boss) {
+          const keySlot = document.getElementById(
+            `key${levelConfig.keyUnlock}`
+          );
+          if (keySlot && !collectedKeys[`key${levelConfig.keyUnlock}`]) {
+            keySlot.classList.add("has-key");
+            keySlot.innerHTML = "🔑";
+            collectedKeys[`key${levelConfig.keyUnlock}`] = true;
+            keySlot.style.animation = "keyInsert 0.5s ease-in-out";
+            playSound("puzzleMerge");
+          }
+          if (currentLevel < levels.length) completeLevel();
+          else winGame();
+        }
+      }
+
+      function updateUI() {
+        const levelConfig = levels[currentLevel - 1];
+        scoreBoard.textContent = `Zapped: ${score} / ${levelConfig.enemies}`;
+        levelIndicator.textContent = `Level: ${currentLevel}`;
+      }
+
+      function completeLevel() {
+        gameOver = true;
+        playSound("levelComplete");
+        setTimeout(() => levelCompleteScreen.classList.remove("hidden"), 400);
+      }
+
+      function failGame() {
+        gameOver = true;
+        playSound("gameOver");
+        Tone.Transport.stop();
+        happyBirthdayPart.stop();
+        gameOverScreen.classList.remove("hidden");
+      }
+
+      function winGame() {
+        gameOver = true;
+        setTimeout(showChestAnimation, 400);
+      }
+
+      function showChestAnimation() {
+        chestScreen.classList.remove("hidden");
+
+        setTimeout(() => {
+          const chestLock = document.querySelector(".chest-lock");
+          let inserted = 0;
+
+          Object.keys(collectedKeys).forEach((keyId, idx) => {
+            if (collectedKeys[keyId]) {
+              setTimeout(() => {
+                const keyEl = document.createElement("div");
+                keyEl.className = "inserted-key";
+                keyEl.innerHTML = "🔑";
+                keyEl.style.left = `${10 + idx * 6}px`;
+                keyEl.style.top = `${5 + idx * 3}px`;
+                chestLock.appendChild(keyEl);
+
+                playSound("hit");
+                inserted++;
+
+                if (inserted === 3) {
+                  setTimeout(() => {
+                    document.querySelector(".chest-lid").classList.add("open");
+                    playSound("levelComplete");
+                    setTimeout(showNoteScreen, 1200);
+                  }, 400);
+                }
+              }, idx * 700);
+            }
+          });
+        }, 800);
+      }
+
+      function showNoteScreen() {
+        chestScreen.classList.add("hidden");
+        noteScreen.classList.remove("hidden");
+        playSound("puzzleMerge");
+      }
+
+      /* ================== End Screen: Confetti + Music + Claps ================== */
+      let confettiLoopInterval = null;
+      let confettiFadeTimeout = null;
+
+      function showEndScreen() {
+        endScreen.classList.remove("hidden");
+        drawBirthdayCake();
+        startConfettiLoop(); // begin confetti
+        scheduleConfettiRestart(); // fade & restart
+        playSound("finalWin");
+        playSound("clap");
+
+        // Start the Happy Birthday background loop softly
+        if (audioReady) {
+          try {
+            Tone.Transport.start("+0.05");
+            happyBirthdayPart.start(0);
+          } catch (e) {}
+        }
+      }
+
+      function scheduleConfettiRestart() {
+        // Every ~7s, fade out confetti then restart
+        if (confettiLoopInterval) clearInterval(confettiLoopInterval);
+        confettiLoopInterval = setInterval(() => {
+          fadeOutConfetti(900);
+          confettiFadeTimeout = setTimeout(() => {
+            createConfetti();
+          }, 950);
+        }, 7000);
+      }
+
+      function startConfettiLoop() {
+        createConfetti();
+      }
+
+      function fadeOutConfetti(durationMs = 800) {
+        const start = performance.now();
+        function step(t) {
+          const k = Math.min(1, (t - start) / durationMs);
+          for (const c of confetti) c.alpha = Math.max(0, 1 - k);
+          if (k < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      /* ================== Effects & Particles ================== */
+      function shakeScreen(intensity) {
+        screenShake.intensity = Math.max(screenShake.intensity, intensity);
+      }
+
+      function createJumpParticles() {
+        for (let i = 0; i < 8; i++) {
+          particles.push({
+            x:
+              player.x +
+              player.width / 2 +
+              (Math.random() - 0.5) * player.width,
+            y: player.y + player.height,
+            vx: (Math.random() - 0.5) * 3,
+            vy: Math.random() * 2 + 1,
+            size: Math.random() * 3 + 1,
+            life: 15,
+            color: "#87ceeb",
+          });
+        }
+      }
+
+      function createLandingParticles() {
+        for (let i = 0; i < 5; i++) {
+          particles.push({
+            x:
+              player.x +
+              player.width / 2 +
+              (Math.random() - 0.5) * player.width,
+            y: player.y + player.height,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -Math.random() * 3,
+            size: Math.random() * 4 + 2,
+            life: 20,
+            color: "#228b22",
+          });
+        }
+      }
+
+      function createExplosion(x, y, count = 20) {
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            size: Math.random() * 6 + 2,
+            life: 40,
+            color: ["#ffd700", "#ff69b4", "#ffffff", "#ff4500"][
+              Math.floor(Math.random() * 4)
+            ],
+          });
+        }
+      }
+
+      function updateParticles() {
+        // regular particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.1;
+          p.life--;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // confetti drift
+        if (confetti.length > 0) {
+          for (let i = confetti.length - 1; i >= 0; i--) {
+            const c = confetti[i];
+            c.y += c.vy;
+            c.x += c.vx;
+            c.vx *= 0.99;
+            c.vy += 0.08;
+            c.rotation += c.rotationSpeed;
+            if (c.y > GAME_HEIGHT + 60) confetti.splice(i, 1);
+          }
+          // top-up to keep density nice
+          while (confetti.length < 140) {
+            confetti.push(makeConfettiPiece());
+          }
+        }
+      }
+
+      function createConfetti() {
+        confetti = [];
+        for (let i = 0; i < 160; i++) {
+          confetti.push(makeConfettiPiece());
+        }
+      }
+
+      function makeConfettiPiece() {
+        return {
+          x: Math.random() * GAME_WIDTH,
+          y: -Math.random() * GAME_HEIGHT,
+          vx: (Math.random() - 0.5) * 2.6,
+          vy: Math.random() * 3.2 + 1.6,
+          size: Math.random() * 10 + 6,
+          color: `hsl(${Math.random() * 360}, 100%, ${
+            Math.random() * 30 + 60
+          }%)`,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.25,
+          alpha: 1,
+        };
+      }
+
+      /* ================== Drawing ================== */
+      function draw() {
+        if (!gameStarted && confetti.length === 0) return;
+
+        ctx.save();
+        ctx.translate(screenShake.x, screenShake.y);
+        ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+        // Ground / bg
+        const bgOffset = Math.sin(gameTime * 0.5) * 5;
+        ctx.fillStyle = "var(--forest-green)";
+        ctx.fillRect(
+          0,
+          GAME_HEIGHT - GROUND_HEIGHT + bgOffset,
+          GAME_WIDTH,
+          GROUND_HEIGHT
+        );
+        ctx.fillStyle = "var(--dark-green)";
+        ctx.beginPath();
+        ctx.moveTo(0, GAME_HEIGHT - GROUND_HEIGHT + bgOffset);
+        ctx.bezierCurveTo(
+          150,
+          400 + bgOffset,
+          250,
+          300 + bgOffset,
+          400,
+          GAME_HEIGHT - GROUND_HEIGHT + bgOffset
+        );
+        ctx.bezierCurveTo(
+          550,
+          350 + bgOffset,
+          650,
+          450 + bgOffset,
+          GAME_WIDTH,
+          GAME_HEIGHT - GROUND_HEIGHT + bgOffset
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Player trail
+        player?.trail.forEach((t) => {
+          ctx.globalAlpha = t.alpha * 0.5;
+          ctx.fillStyle = "#ff69b4";
+          ctx.fillRect(t.x - 3, t.y - 3, 6, 6);
+        });
+        ctx.globalAlpha = 1;
+
+        // Player
+        if (player) {
+          const playerBounce = Math.sin(player.animationOffset) * 2;
+          cocoSprite.draw(ctx, player.x, player.y + playerBounce, player.width);
+          drawText(
+            "Coco",
+            player.x + player.width / 2,
+            player.y - 10 + playerBounce,
+            "#fff"
+          );
+        }
+
+        // Enemies
+        enemies.forEach((enemy) => {
+          const enemyBounce =
+            Math.sin(enemy.animationOffset + enemy.bounceHeight) *
+            enemy.bounceHeight *
+            0.3;
+          mansplainerSprite.draw(
+            ctx,
+            enemy.x,
+            enemy.y + enemyBounce,
+            enemy.width
+          );
+          drawText(
+            enemy.name,
+            enemy.x + enemy.width / 2,
+            enemy.y - 10 + enemyBounce,
+            "#fff"
+          );
+        });
+
+        // Boss
+        if (boss) {
+          const bShake =
+            boss.shakeIntensity > 0
+              ? {
+                  x: (Math.random() - 0.5) * boss.shakeIntensity * 0.5,
+                  y: (Math.random() - 0.5) * boss.shakeIntensity * 0.5,
+                }
+              : { x: 0, y: 0 };
+          const bob = Math.sin(boss.animationOffset) * 3;
+          bossSprite.draw(
+            ctx,
+            boss.x + bShake.x,
+            boss.y + bShake.y + bob,
+            boss.width
+          );
+          drawText(
+            boss.name,
+            boss.x + boss.width / 2 + bShake.x,
+            boss.y - 25 + bShake.y + bob,
+            "#fff"
+          );
+
+          // Health bar
+          const w = boss.width;
+          const hp = boss.health / boss.maxHealth;
+          ctx.fillStyle = "#333";
+          ctx.fillRect(boss.x + bShake.x, boss.y - 15 + bShake.y + bob, w, 10);
+          ctx.fillStyle =
+            hp > 0.6 ? "#4CAF50" : hp > 0.3 ? "#FF9800" : "#F44336";
+          ctx.fillRect(
+            boss.x + bShake.x,
+            boss.y - 15 + bShake.y + bob,
+            w * hp,
+            10
+          );
+        }
+
+        // Zaps & trails
+        zaps.forEach((zap) => {
+          if (zap.trail) {
+            zap.trail.forEach((t) => {
+              if (t.alpha > 0) {
+                ctx.globalAlpha = t.alpha * 0.6;
+                ctx.fillStyle = "#ffff00";
+                ctx.fillRect(t.x - 2, t.y, zap.width + 4, zap.height);
+              }
+            });
+          }
+          ctx.globalAlpha = 1;
+          ctx.shadowColor = "#ffd700";
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "var(--gold)";
+          ctx.fillRect(zap.x, zap.y, zap.width, zap.height);
+          ctx.shadowBlur = 0;
+        });
+
+        // Particles
+        particles.forEach((p) => {
+          ctx.globalAlpha = Math.max(0, p.life / 40);
+          ctx.fillStyle = p.color;
+          if (p.color === "#ffd700") {
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 5;
+          }
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+          ctx.shadowBlur = 0;
+        });
+        ctx.globalAlpha = 1;
+
+        // Confetti
+        confetti.forEach((c) => {
+          ctx.save();
+          ctx.globalAlpha = c.alpha ?? 1;
+          ctx.translate(c.x + c.size / 2, c.y + c.size / 2);
+          ctx.rotate(c.rotation);
+          ctx.fillStyle = c.color;
+          ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
+          ctx.restore();
+        });
+
+        ctx.restore();
+      }
+
+      function drawText(text, x, y, color) {
+        ctx.font = "12px 'Press Start 2P'";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#000";
+        ctx.fillText(text, x + 2, y + 2);
+        ctx.fillText(text, x + 1, y + 1);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 3;
+        ctx.fillText(text, x, y);
+        ctx.shadowBlur = 0;
+      }
+
+      function drawBirthdayCake() {
+        const cakeCanvas = document.getElementById("cake-canvas");
+        const cakeCtx = cakeCanvas.getContext("2d");
+        cakeCtx.imageSmoothingEnabled = false;
+        const w = cakeCanvas.width,
+          h = cakeCanvas.height;
+        cakeCtx.clearRect(0, 0, w, h);
+        cakeCtx.fillStyle = "#d2691e";
+        cakeCtx.fillRect(w * 0.1, h * 0.7, w * 0.8, h * 0.25);
+        cakeCtx.fillStyle = "#ffb6c1";
+        cakeCtx.fillRect(w * 0.15, h * 0.45, w * 0.7, h * 0.25);
+        cakeCtx.fillStyle = "#fffacd";
+        cakeCtx.fillRect(w * 0.2, h * 0.2, w * 0.6, h * 0.25);
+        cakeCtx.fillStyle = "#ff69b4";
+        for (let i = 0; i < 5; i++)
+          cakeCtx.fillRect(
+            w * 0.22 + ((w * 0.6) / 5) * i,
+            h * 0.45,
+            w * 0.05,
+            h * 0.1
+          );
+        const candleColors = ["#ff0000", "#0000ff", "#00ff00"];
+        for (let i = 0; i < 3; i++) {
+          cakeCtx.fillStyle = candleColors[i];
+          cakeCtx.fillRect(w * 0.3 + w * 0.15 * i, h * 0.1, 10, 25);
+          cakeCtx.fillStyle = "#ffd700";
+          cakeCtx.beginPath();
+          cakeCtx.moveTo(w * 0.3 + w * 0.15 * i + 5, h * 0.1);
+          cakeCtx.lineTo(w * 0.3 + w * 0.15 * i, h * 0.05);
+          cakeCtx.lineTo(w * 0.3 + w * 0.15 * i + 10, h * 0.05);
+          cakeCtx.closePath();
+          cakeCtx.fill();
+        }
+      }
+
+      /* ================== Loop ================== */
+      function gameLoop() {
+        if (!gameOver) update();
+        else updateParticles(); // keep confetti/particles alive post-win
+        draw();
+        animationFrameId = requestAnimationFrame(gameLoop);
+      }
+
+      /* ================== Utils ================== */
+      window.addEventListener("beforeunload", () => {
+        // tidy up audio
+        try {
+          happyBirthdayPart.stop();
+        } catch {}
+        try {
+          Tone.Transport.stop();
+        } catch {}
+        if (confettiLoopInterval) clearInterval(confettiLoopInterval);
+        if (confettiFadeTimeout) clearTimeout(confettiFadeTimeout);
+      });
+    </script>
+  </body>
+</html>
